@@ -1,157 +1,128 @@
 import { Link } from "react-router-dom";
-import {
-  Activity, ArrowRight, BarChart3, Brain, GitCompare, GraduationCap,
-  Layers, Sparkles, Target,
-} from "lucide-react";
+import { ArrowRight, Brain, Eye, HeartPulse, Mic, Radar, ShieldCheck, Sparkles, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
-const MODULES = [
-  {
-    to: "/visualizer",
-    icon: Layers,
-    title: "Visualization Engine",
-    desc: "Step-by-step animated execution of sorting & searching with live code sync.",
-    tag: "Interactive",
-  },
-  {
-    to: "/performance",
-    icon: Activity,
-    title: "Performance Analysis",
-    desc: "Run benchmarks across input sizes; track time, comparisons, swaps in real time.",
-    tag: "Benchmarks",
-  },
-  {
-    to: "/compare",
-    icon: GitCompare,
-    title: "Comparison Dashboard",
-    desc: "Race multiple algorithms side-by-side on the same data.",
-    tag: "Side-by-side",
-  },
-  {
-    to: "/analyzer",
-    icon: Target,
-    title: "Input Analyzer",
-    desc: "Detect sortedness, inversions, and patterns — get smart algorithm suggestions.",
-    tag: "Logic",
-  },
-  {
-    to: "/predict",
-    icon: Brain,
-    title: "ML Runtime Predictor",
-    desc: "Train an in-browser neural net to predict runtime and recommend the best algorithm.",
-    tag: "TensorFlow.js",
-    accent: true,
-  },
-  {
-    to: "/cases",
-    icon: BarChart3,
-    title: "Best / Worst Generator",
-    desc: "Auto-generate best & worst case inputs for any algorithm and compare extremes.",
-    tag: "Edge cases",
-  },
-  {
-    to: "/learn",
-    icon: GraduationCap,
-    title: "Learning Mode",
-    desc: '"What happens next?" interactive quizzes built from real algorithm runs.',
-    tag: "Practice",
-  },
+const SIGNALS = [
+  { icon: Brain, label: "Emotion", value: "Calm" },
+  { icon: HeartPulse, label: "Stress", value: "32%" },
+  { icon: Eye, label: "Eye Strain", value: "Low" },
+  { icon: Mic, label: "Voice Tone", value: "Steady" },
 ];
 
-const Index = () => {
-  return (
-    <div className="relative">
-      {/* Hero */}
-      <section className="container pt-12 md:pt-20 pb-12 relative">
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[60rem] h-[30rem] bg-glow opacity-70 pointer-events-none" />
-        <div className="relative max-w-3xl">
-          <Badge variant="outline" className="gap-1.5 px-3 py-1 mb-5 border-primary/30 bg-primary/5">
-            <Sparkles className="h-3 w-3 text-primary" />
-            <span className="text-xs font-medium">Intelligent Algorithm Analysis Platform</span>
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight leading-[1.05]">
-            Visualize, benchmark, and{" "}
-            <span className="aurora-text animate-aurora bg-aurora bg-clip-text">predict</span>{" "}
-            algorithms — with ML.
+const FEATURES = [
+  { icon: Radar, title: "Multimodal Scan", body: "Text, voice and facial signals analyzed in real time." },
+  { icon: Brain, title: "Burnout Prediction", body: "Catches deterioration weeks before symptoms surface." },
+  { icon: HeartPulse, title: "Recovery Protocols", body: "Personalized breathing, focus and sleep interventions." },
+  { icon: ShieldCheck, title: "Guardian Mode", body: "Emergency alerting when severe distress is detected." },
+];
+
+const Index = () => (
+  <div>
+    {/* HERO */}
+    <section className="relative overflow-hidden">
+      <div className="absolute inset-0 bg-glow" />
+      <div className="absolute inset-0 hud-grid opacity-30" />
+      <div className="container relative grid gap-12 py-20 md:py-28 lg:grid-cols-2 lg:py-32">
+        <div className="animate-fade-up">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono uppercase tracking-[0.18em] text-primary">
+            <Sparkles className="h-3 w-3" /> Behavioral Wellness Intelligence
+          </div>
+          <h1 className="mt-5 font-display text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
+            AI That Understands<br />
+            <span className="aurora-text animate-aurora">More Than Words.</span>
           </h1>
-          <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-2xl">
-            AlgoLab is more than a visualizer. It analyzes performance, detects input patterns,
-            trains a neural network to predict runtime, and teaches you interactively.
+          <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+            Analyze emotions, stress, posture, fatigue and hidden wellness signals using
+            AI-powered behavioral intelligence — multimodal, private, and built for prevention.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-aurora text-primary-foreground hover:opacity-90 shadow-glow-primary gap-2">
-              <Link to="/visualizer">
-                Start visualizing <ArrowRight className="h-4 w-4" />
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild size="lg" className="bg-aurora text-primary-foreground glow-primary hover:opacity-95">
+              <Link to="/scan">
+                <Radar className="mr-2 h-4 w-4" /> Start AI Scan
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="gap-2">
-              <Link to="/predict">
-                <Brain className="h-4 w-4" /> Try ML predictor
+            <Button asChild size="lg" variant="outline" className="border-primary/40 hover:bg-primary/10">
+              <Link to="/dashboard">
+                Try Demo <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
-
-          <div className="mt-10 flex flex-wrap gap-2">
-            {["Bubble", "Selection", "Insertion", "Merge", "Quick", "Binary Search", "Linear Search"].map((a) => (
-              <Badge key={a} variant="outline" className="font-mono text-xs">
-                {a}
-              </Badge>
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {SIGNALS.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="glass rounded-xl p-3">
+                <Icon className="h-4 w-4 text-primary" />
+                <div className="mt-2 text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
+                <div className="font-display text-sm font-semibold">{value}</div>
+              </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Modules */}
-      <section className="container pb-20">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <div className="text-xs uppercase tracking-[0.18em] text-primary font-semibold">
-              7 modules
+        {/* Floating face / hologram */}
+        <div className="relative mx-auto flex aspect-square w-full max-w-md items-center justify-center">
+          <div className="absolute inset-0 rounded-full bg-aurora-soft blur-3xl" />
+          <div className="absolute h-72 w-72 rounded-full border border-primary/30 animate-spin-slow" />
+          <div className="absolute h-56 w-56 rounded-full border border-secondary/30 animate-spin-slow" style={{ animationDirection: "reverse" }} />
+          <div className="absolute h-40 w-40 rounded-full border border-accent/30 animate-pulse" />
+          <div className="absolute h-24 w-24 rounded-full bg-aurora animate-aurora glow-primary animate-float" />
+          <div className="absolute h-24 w-24 rounded-full animate-pulse-ring border border-primary/40" />
+          <Waves className="relative h-12 w-12 text-primary-foreground" strokeWidth={2.2} />
+          {/* Floating metrics */}
+          <div className="absolute -left-2 top-6 glass rounded-xl px-3 py-2 text-xs font-mono">
+            <div className="text-muted-foreground">HRV</div>
+            <div className="text-primary">68 ms</div>
+          </div>
+          <div className="absolute -right-2 top-20 glass rounded-xl px-3 py-2 text-xs font-mono">
+            <div className="text-muted-foreground">Focus</div>
+            <div className="text-success">82%</div>
+          </div>
+          <div className="absolute -left-4 bottom-10 glass rounded-xl px-3 py-2 text-xs font-mono">
+            <div className="text-muted-foreground">Posture</div>
+            <div className="text-warning">tilt L</div>
+          </div>
+          <div className="absolute -right-4 bottom-4 glass rounded-xl px-3 py-2 text-xs font-mono">
+            <div className="text-muted-foreground">Voice</div>
+            <div className="text-secondary">steady</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* FEATURES */}
+    <section className="container py-16">
+      <div className="mb-10 max-w-2xl">
+        <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary">Capabilities</div>
+        <h2 className="mt-2 font-display text-3xl font-bold md:text-4xl">Detecting health signals humans ignore.</h2>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {FEATURES.map(({ icon: Icon, title, body }) => (
+          <div key={title} className="glass rounded-2xl p-6 transition hover:-translate-y-0.5 hover:shadow-elevated">
+            <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon className="h-5 w-5" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-display font-bold mt-1">
-              Everything you need to understand algorithms
-            </h2>
+            <div className="font-display text-lg font-semibold">{title}</div>
+            <p className="mt-1 text-sm text-muted-foreground">{body}</p>
           </div>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {MODULES.map(({ to, icon: Icon, title, desc, tag, accent }) => (
-            <Link
-              key={to}
-              to={to}
-              className={`group glass rounded-2xl p-5 hover:scale-[1.015] hover:shadow-elevated transition-all ease-smooth duration-300 relative overflow-hidden ${
-                accent ? "aurora-border" : ""
-              }`}
-            >
-              {accent && <div className="absolute inset-0 bg-aurora-soft opacity-30 pointer-events-none" />}
-              <div className="relative flex items-start justify-between mb-3">
-                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${accent ? "bg-aurora shadow-glow-primary" : "bg-muted"}`}>
-                  <Icon className={`h-5 w-5 ${accent ? "text-primary-foreground" : "text-foreground"}`} />
-                </div>
-                <Badge variant="outline" className="text-[10px] font-mono">{tag}</Badge>
-              </div>
-              <h3 className="relative font-display font-semibold text-lg">{title}</h3>
-              <p className="relative text-sm text-muted-foreground mt-1.5">{desc}</p>
-              <div className="relative flex items-center gap-1.5 mt-4 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                Explore <ArrowRight className="h-3.5 w-3.5" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+        ))}
+      </div>
+    </section>
 
-      <footer className="container pb-12">
-        <div className="glass rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted-foreground">
-          <div>
-            Built with <span className="text-foreground font-medium">React</span>,{" "}
-            <span className="text-foreground font-medium">TensorFlow.js</span>, and{" "}
-            <span className="text-foreground font-medium">Recharts</span>.
-          </div>
-          <div className="font-mono">© AlgoLab</div>
+    {/* TAGLINE BAND */}
+    <section className="container pb-24">
+      <div className="aurora-border rounded-3xl p-10 text-center">
+        <div className="text-xs font-mono uppercase tracking-[0.25em] text-primary">Your Silent Health Companion</div>
+        <h3 className="mt-3 font-display text-3xl font-bold md:text-5xl">Prevention before symptoms.</h3>
+        <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+          SilentSignal AI listens, watches and learns — so your body and mind get help before they ask.
+        </p>
+        <div className="mt-6 flex justify-center gap-3">
+          <Button asChild size="lg" className="bg-aurora text-primary-foreground glow-primary">
+            <Link to="/scan">Begin First Scan</Link>
+          </Button>
         </div>
-      </footer>
-    </div>
-  );
-};
+      </div>
+    </section>
+  </div>
+);
 
 export default Index;

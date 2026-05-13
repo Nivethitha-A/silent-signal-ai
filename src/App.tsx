@@ -6,13 +6,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/layout/AppShell";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
-import Visualizer from "./pages/Visualizer";
-import Performance from "./pages/Performance";
-import Compare from "./pages/Compare";
-import Analyzer from "./pages/Analyzer";
-import Predict from "./pages/Predict";
-import Cases from "./pages/Cases";
-import Learn from "./pages/Learn";
+import Scan from "./pages/Scan";
+import Dashboard from "./pages/Dashboard";
+import Journal from "./pages/Journal";
+import Analytics from "./pages/Analytics";
+import Recovery from "./pages/Recovery";
+import Guardian from "./pages/Guardian";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -25,13 +25,13 @@ const App = () => (
         <Routes>
           <Route element={<AppShell />}>
             <Route path="/" element={<Index />} />
-            <Route path="/visualizer" element={<Visualizer />} />
-            <Route path="/performance" element={<Performance />} />
-            <Route path="/compare" element={<Compare />} />
-            <Route path="/analyzer" element={<Analyzer />} />
-            <Route path="/predict" element={<Predict />} />
-            <Route path="/cases" element={<Cases />} />
-            <Route path="/learn" element={<Learn />} />
+            <Route path="/scan" element={<Scan />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/recovery" element={<Recovery />} />
+            <Route path="/guardian" element={<Guardian />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
