@@ -1,25 +1,26 @@
 import { NavLink, Outlet } from "react-router-dom";
 import {
   Activity,
-  BarChart3,
-  Brain,
-  GitCompare,
-  GraduationCap,
-  Layers,
+  BookOpen,
+  Heart,
+  LayoutDashboard,
+  Radar,
+  Settings,
+  ShieldAlert,
   Sparkles,
-  Target,
+  Waves,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { to: "/", label: "Overview", icon: Sparkles, end: true },
-  { to: "/visualizer", label: "Visualizer", icon: Layers },
-  { to: "/performance", label: "Performance", icon: Activity },
-  { to: "/compare", label: "Compare", icon: GitCompare },
-  { to: "/analyzer", label: "Input Analyzer", icon: Target },
-  { to: "/predict", label: "ML Predict", icon: Brain },
-  { to: "/cases", label: "Best / Worst", icon: BarChart3 },
-  { to: "/learn", label: "Learning Mode", icon: GraduationCap },
+  { to: "/", label: "Home", icon: Sparkles, end: true },
+  { to: "/scan", label: "AI Scan", icon: Radar },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/journal", label: "Journal", icon: BookOpen },
+  { to: "/analytics", label: "Burnout", icon: Activity },
+  { to: "/recovery", label: "Recovery", icon: Heart },
+  { to: "/guardian", label: "Guardian", icon: ShieldAlert },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function AppShell() {
@@ -29,12 +30,13 @@ export function AppShell() {
         <div className="container flex h-16 items-center justify-between gap-4">
           <NavLink to="/" className="flex items-center gap-2.5 group">
             <div className="relative h-9 w-9 rounded-xl bg-aurora animate-aurora flex items-center justify-center shadow-glow-primary">
-              <span className="font-display font-bold text-primary-foreground text-sm">A</span>
+              <Waves className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
+              <span className="absolute -inset-1 rounded-xl bg-primary/20 blur-md -z-10" />
             </div>
             <div className="leading-tight">
-              <div className="font-display font-bold text-base tracking-tight">AlgoLab</div>
+              <div className="font-display font-bold text-base tracking-tight">SilentSignal</div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                Intelligent Analysis
+                AI Wellness OS
               </div>
             </div>
           </NavLink>
@@ -48,7 +50,7 @@ export function AppShell() {
                   cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ease-smooth duration-200",
                     isActive
-                      ? "text-foreground bg-muted"
+                      ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                   )
                 }
@@ -58,6 +60,10 @@ export function AppShell() {
               </NavLink>
             ))}
           </nav>
+          <div className="hidden md:flex items-center gap-2 text-xs font-mono text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+            AI ONLINE
+          </div>
         </div>
       </div>
 
@@ -65,7 +71,6 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      {/* Mobile bottom nav */}
       <nav className="lg:hidden fixed bottom-3 left-3 right-3 z-40 glass-strong rounded-2xl px-2 py-2 flex items-center justify-between overflow-x-auto scroll-thin">
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink

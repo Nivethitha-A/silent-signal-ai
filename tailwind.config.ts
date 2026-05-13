@@ -60,15 +60,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        viz: {
-          default: "hsl(var(--viz-default))",
-          compare: "hsl(var(--viz-compare))",
-          swap: "hsl(var(--viz-swap))",
-          sorted: "hsl(var(--viz-sorted))",
-          pivot: "hsl(var(--viz-pivot))",
-          current: "hsl(var(--viz-current))",
-          path: "hsl(var(--viz-path))",
-          visited: "hsl(var(--viz-visited))",
+        signal: {
+          stress: "hsl(var(--signal-stress))",
+          focus: "hsl(var(--signal-focus))",
+          energy: "hsl(var(--signal-energy))",
+          fatigue: "hsl(var(--signal-fatigue))",
+          burnout: "hsl(var(--signal-burnout))",
+          calm: "hsl(var(--signal-calm))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
