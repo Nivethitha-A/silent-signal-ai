@@ -208,6 +208,62 @@ export function runAnalysis(opts: {
   };
 }
 
+// ---------- Build session from real AI output ----------
+export interface AIWellnessReport {
+  summary: string;
+  emotion: string;
+  metrics: Record<SignalKey, number>;
+  insights: InsightLine[];
+  recovery: Omit<RecoveryAction, "id">[];
+  guardian: { triggered: boolean; reason?: string };
+}
+
+export function buildSessionFromAI(
+  ai: AIWellnessReport,
+  journal: string,
+  modalities: { text: boolean; voice: boolean; face: boolean },
+  previous?: ScanSession,
+): ScanSession {
+  const lastMap: Record<string, number> = {};
+  (previous?.metrics ?? []).forEach((m) => (lastMap[m.key] = m.value));
+
+  const m = (key: SignalKey, label: string, value: number, invert = false): MetricResult => {
+    const v = clamp(value);
+    const prev = lastMap[key] ?? v;
+    const trend = +(v - prev).toFixed(1);
+    const tone: MetricResult["tone"] = invert
+      ? v > 70 ? "good" : v > 45 ? "warn" : "bad"
+      : v < 30 ? "good" : v < 60 ? "warn" : "bad";
+    return { key, label, value: +v.toFixed(1), unit: "%", trend, tone };
+  };
+
+  const metrics: MetricResult[] = [
+    m("wellness", "Wellness Score", ai.metrics.wellness, true),
+    m("stress", "Stress Level", ai.metrics.stress),
+    m("burnout", "Burnout Risk", ai.metrics.burnout),
+    m("focus", "Focus Level", ai.metrics.focus, true),
+    m("fatigue", "Fatigue Score", ai.metrics.fatigue),
+    m("eyeStrain", "Eye Strain", ai.metrics.eyeStrain),
+    m("posture", "Posture Risk", ai.metrics.posture),
+    m("energy", "Energy Level", ai.metrics.energy, true),
+  ];
+
+  const recovery: RecoveryAction[] = (ai.recovery ?? []).map((r, i) => ({
+    id: `${r.category}-${i}`, ...r,
+  }));
+
+  return {
+    id: crypto.randomUUID(),
+    createdAt: Date.now(),
+    journal: journal || ai.summary,
+    modalities,
+    metrics,
+    insights: ai.insights ?? [],
+    recovery: recovery.length ? recovery : [{ id: "calm", title: "Calm Mode Maintenance", duration: "2 min", category: "calm", rationale: "Reinforce regulated baseline with a short coherence breath." }],
+    guardian: ai.guardian ?? { triggered: false },
+  };
+}
+
 // ---------- Demo seed ----------
 export function seedDemoIfEmpty() {
   if (loadSessions().length > 0) return;
