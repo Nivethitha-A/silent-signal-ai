@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, CameraOff, Mic, Square, Play, RotateCw, Sparkles, Send } from "lucide-react";
+import { Camera, CameraOff, Mic, Square, RotateCw, Sparkles, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScanFrame } from "@/components/silent/ScanFrame";
@@ -33,6 +33,8 @@ const Scan = () => {
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<number | null>(null);
+  const speechRef = useRef<any>(null);
+  const liveTranscriptRef = useRef("");
 
   useEffect(() => () => stopStream(), []);
 
@@ -46,6 +48,8 @@ const Scan = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
+      liveTranscriptRef.current = "";
+      startBrowserTranscription();
       const mr = new MediaRecorder(stream, { mimeType: pickMime() });
       chunksRef.current = [];
       mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
@@ -67,7 +71,31 @@ const Scan = () => {
 
   function stopRecording() {
     setRecording(false);
+    speechRef.current?.stop?.();
     mediaRef.current?.stop();
+  }
+
+  function startBrowserTranscription() {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+    recognition.onresult = (event: any) => {
+      let finalText = "";
+      let interimText = "";
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const text = event.results[i][0]?.transcript ?? "";
+        if (event.results[i].isFinal) finalText += text;
+        else interimText += text;
+      }
+      if (finalText) liveTranscriptRef.current = `${liveTranscriptRef.current} ${finalText}`.trim();
+      setTranscript(`${liveTranscriptRef.current} ${interimText}`.trim());
+    };
+    recognition.onerror = () => undefined;
+    recognition.start();
+    speechRef.current = recognition;
   }
 
   function pickMime() {
@@ -79,6 +107,12 @@ const Scan = () => {
   async function processAudio(blob: Blob) {
     setBusy(true); setStage(1);
     try {
+      const browserText = liveTranscriptRef.current.trim();
+      if (browserText.length > 8) {
+        setTranscript(browserText);
+        await analyze(browserText);
+        return;
+      }
       const fd = new FormData();
       fd.append("audio", blob, "story.webm");
       const { data, error } = await supabase.functions.invoke("transcribe", { body: fd });
