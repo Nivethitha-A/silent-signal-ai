@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, CameraOff, Mic, Square, RotateCw, Sparkles, Send } from "lucide-react";
+import { Camera, CameraOff, Mic, Square, RotateCw, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScanFrame } from "@/components/silent/ScanFrame";
@@ -22,7 +22,6 @@ const Scan = () => {
   const [journal, setJournal] = useState("");
   const [transcript, setTranscript] = useState("");
   const [face, setFace] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
 
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
@@ -131,7 +130,7 @@ const Scan = () => {
   async function analyze(storyText: string) {
     setStage(2);
     try {
-      const modalities = { text: !!journal, voice: true, face: face || demoMode };
+      const modalities = { text: !!journal, voice: true, face };
       const { data, error } = await supabase.functions.invoke("analyze-story", {
         body: { transcript: storyText + (journal ? `\n\nAdditional notes from user: ${journal}` : ""), modalities },
       });
@@ -165,21 +164,15 @@ const Scan = () => {
 
   return (
     <div className="container py-10 pb-28 lg:pb-10">
-      <div className="mb-8 flex items-end justify-between gap-4">
-        <div>
-          <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary">Live Multimodal Scan</div>
-          <h1 className="mt-1 font-display text-3xl font-bold md:text-4xl">AI Scanning Studio</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Speak your story. AI listens, transcribes, and decodes how you really feel.</p>
-        </div>
-        <Button variant="outline" className="border-primary/40" onClick={() => setDemoMode((v) => !v)}>
-          <Sparkles className="mr-2 h-4 w-4" />
-          {demoMode ? "Demo Mode: ON" : "Demo Mode"}
-        </Button>
+      <div className="mb-8">
+        <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary">Live Multimodal Scan</div>
+        <h1 className="mt-1 font-display text-3xl font-bold md:text-4xl">AI Scanning Studio</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Speak your story. AI listens, transcribes, and decodes how you really feel.</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3 space-y-4">
-          <ScanFrame active={recording || busy} fallback={demoMode || !face} />
+          <ScanFrame active={recording || busy} fallback={!face} />
           <Waveform active={recording} />
 
           {(recording || busy) && (
