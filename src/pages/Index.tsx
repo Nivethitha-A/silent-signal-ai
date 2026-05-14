@@ -43,7 +43,7 @@ const Index = () => (
             </Button>
             <Button asChild size="lg" variant="outline" className="border-primary/40 hover:bg-primary/10">
               <Link to="/dashboard">
-                Try Demo <ArrowRight className="ml-2 h-4 w-4" />
+                View Dashboard <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
