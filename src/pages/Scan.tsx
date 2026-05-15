@@ -32,6 +32,7 @@ const Scan = () => {
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<number | null>(null);
+  const recordingRef = useRef(false);
   const speechRef = useRef<any>(null);
   const liveTranscriptRef = useRef("");
   const browserTranscriptActiveRef = useRef(false);
@@ -46,6 +47,7 @@ const Scan = () => {
     speechRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    recordingRef.current = false;
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   }
 
@@ -86,7 +88,7 @@ const Scan = () => {
       mr.ondataavailable = (e) => {
         if (e.data.size <= 0) return;
         chunksRef.current.push(e.data);
-        if (serverLiveTranscriptRef.current && recording) enqueueLiveChunk(e.data);
+        if (serverLiveTranscriptRef.current && recordingRef.current) enqueueLiveChunk(e.data);
       };
       mr.onstop = async () => {
         speechRef.current?.stop?.();
@@ -95,6 +97,7 @@ const Scan = () => {
         await processAudio(blob);
       };
       mediaRef.current = mr;
+      recordingRef.current = true;
       mr.start(3000);
       setRecording(true);
       setRecSeconds(0);
@@ -109,6 +112,7 @@ const Scan = () => {
   }
 
   function stopRecording() {
+    recordingRef.current = false;
     setRecording(false);
     speechRef.current?.stop?.();
     if (mediaRef.current?.state !== "inactive") mediaRef.current?.stop();
