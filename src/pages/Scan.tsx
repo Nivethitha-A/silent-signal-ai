@@ -205,12 +205,12 @@ const Scan = () => {
     setBusy(true); setStage(1);
     try {
       const browserText = liveTranscriptRef.current.trim();
-      if (browserText.length > 8) {
+      if (browserText.length > 8 && !serverLiveTranscriptRef.current) {
         setTranscript(browserText);
         await analyze(browserText);
         return;
       }
-      const text = await transcribeBlob(blob);
+      const text = await transcribeBlob(blob).catch(() => browserText);
       if (!text.trim()) throw new Error("Couldn't hear any speech — try again.");
       setTranscript(text);
       await analyze(text);
