@@ -90,7 +90,7 @@ const Scan = () => {
 
   async function startRecording() {
     try {
-      if (!navigator.mediaDevices?.getUserMedia || !(window as any).MediaRecorder) {
+      if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
         toast({ title: "Recording unavailable", description: "This browser cannot record audio. Type your story instead.", variant: "destructive" });
         return;
       }
@@ -147,13 +147,14 @@ const Scan = () => {
   }
 
   function startBrowserTranscription() {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const speechWindow = window as SpeechRecognitionWindow;
+    const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
     if (!SpeechRecognition) return false;
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event) => {
       let finalText = "";
       let interimText = "";
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -179,7 +180,7 @@ const Scan = () => {
 
   function pickMime() {
     const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg"];
-    for (const c of candidates) if ((window as any).MediaRecorder?.isTypeSupported?.(c)) return c;
+    for (const c of candidates) if (window.MediaRecorder?.isTypeSupported?.(c)) return c;
     return "";
   }
 
