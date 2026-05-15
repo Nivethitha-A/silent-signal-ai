@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     // Detect mime
     const type = (file as Blob).type || "audio/webm";
     let format = "webm";
-    if (type.includes("mp4") || type.includes("m4a")) format = "mp4";
+    if (type.includes("mp4") || type.includes("m4a") || type.includes("aac")) format = "mp4";
     else if (type.includes("mpeg") || type.includes("mp3")) format = "mp3";
     else if (type.includes("wav")) format = "wav";
     else if (type.includes("ogg")) format = "ogg";
@@ -48,14 +48,25 @@ Deno.serve(async (req) => {
           {
             role: "user",
             content: [
-              { type: "text", text: "Transcribe this audio verbatim. Return only the transcript text, no commentary." },
+              { type: "text", text: "Transcribe clear human speech in this audio verbatim. If there is no clear speech, return an empty string. Return only the transcript text, no commentary." },
               { type: "input_audio", input_audio: { data: base64, format } },
             ],
           },
         ],
+        temperature: 0,
       }),
     });
 
+    if (r.status === 429) {
+      return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again shortly." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (r.status === 402) {
+      return new Response(JSON.stringify({ error: "AI credits exhausted. Add credits in Settings → Workspace → Usage." }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     if (!r.ok) {
       const errText = await r.text();
       console.error("AI gateway STT failed:", r.status, errText);

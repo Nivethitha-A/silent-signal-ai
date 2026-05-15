@@ -17,6 +17,26 @@ const STAGES = [
   "Generating recovery protocol…",
 ];
 
+type SpeechResult = { isFinal: boolean; 0?: { transcript?: string } };
+type SpeechResultList = { length: number; [index: number]: SpeechResult };
+type SpeechRecognitionEventLike = { resultIndex: number; results: SpeechResultList };
+type BrowserSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+type SpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
+type SpeechRecognitionWindow = Window & typeof globalThis & {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => error instanceof Error ? error.message : fallback;
+
 const Scan = () => {
   const navigate = useNavigate();
   const [journal, setJournal] = useState("");
@@ -32,36 +52,87 @@ const Scan = () => {
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<number | null>(null);
-  const speechRef = useRef<any>(null);
+  const recordingRef = useRef(false);
+  const speechRef = useRef<BrowserSpeechRecognition | null>(null);
   const liveTranscriptRef = useRef("");
+  const browserTranscriptActiveRef = useRef(false);
+  const serverLiveTranscriptRef = useRef(false);
+  const liveTranscribingRef = useRef(false);
+  const liveChunkQueueRef = useRef<Blob[]>([]);
 
   useEffect(() => () => stopStream(), []);
 
   function stopStream() {
+    speechRef.current?.stop?.();
+    speechRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    recordingRef.current = false;
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  }
+
+  function appendTranscript(nextText: string) {
+    const clean = nextText.replace(/\s+/g, " ").trim();
+    if (!clean) return;
+    const current = liveTranscriptRef.current.trim();
+    const lowerCurrent = current.toLowerCase();
+    const lowerClean = clean.toLowerCase();
+    const combined = !current
+      ? clean
+      : lowerCurrent.endsWith(lowerClean)
+        ? current
+        : lowerClean.startsWith(lowerCurrent)
+          ? clean
+          : `${current} ${clean}`;
+    liveTranscriptRef.current = combined.trim();
+    setTranscript(liveTranscriptRef.current);
   }
 
   async function startRecording() {
     try {
+      if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+        toast({ title: "Recording unavailable", description: "This browser cannot record audio. Type your story instead.", variant: "destructive" });
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       liveTranscriptRef.current = "";
-      startBrowserTranscription();
-      const mr = new MediaRecorder(stream, { mimeType: pickMime() });
+      setTranscript("");
+      browserTranscriptActiveRef.current = startBrowserTranscription();
+      serverLiveTranscriptRef.current = !browserTranscriptActiveRef.current;
+      liveTranscribingRef.current = false;
+      liveChunkQueueRef.current = [];
+      const mimeType = pickMime();
+      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       chunksRef.current = [];
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.ondataavailable = (e) => {
+        if (e.data.size <= 0) return;
+        chunksRef.current.push(e.data);
+        if (serverLiveTranscriptRef.current && recordingRef.current) enqueueLiveChunk(e.data);
+      };
       mr.onstop = async () => {
+        speechRef.current?.stop?.();
         const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
         stopStream();
         await processAudio(blob);
       };
       mediaRef.current = mr;
-      mr.start();
+      recordingRef.current = true;
+      mr.start(3000);
       setRecording(true);
       setRecSeconds(0);
-      timerRef.current = window.setInterval(() => setRecSeconds((s) => s + 1), 1000);
+      timerRef.current = window.setInterval(() => {
+        setRecSeconds((s) => {
+          const next = s + 1;
+          if (serverLiveTranscriptRef.current && next % 3 === 0 && mediaRef.current?.state === "recording") {
+            try { mediaRef.current.requestData(); } catch { /* browser may not support manual chunks */ }
+          }
+          return next;
+        });
+      }, 1000);
+      if (serverLiveTranscriptRef.current) {
+        toast({ title: "Mobile live transcript enabled", description: "Keep speaking — transcript appears every few seconds." });
+      }
     } catch (e) {
       console.error(e);
       toast({ title: "Microphone blocked", description: "Allow mic access, or type your story instead.", variant: "destructive" });
@@ -69,19 +140,21 @@ const Scan = () => {
   }
 
   function stopRecording() {
+    recordingRef.current = false;
     setRecording(false);
     speechRef.current?.stop?.();
-    mediaRef.current?.stop();
+    if (mediaRef.current?.state !== "inactive") mediaRef.current?.stop();
   }
 
   function startBrowserTranscription() {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    const speechWindow = window as SpeechRecognitionWindow;
+    const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
+    if (!SpeechRecognition) return false;
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event) => {
       let finalText = "";
       let interimText = "";
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -92,37 +165,79 @@ const Scan = () => {
       if (finalText) liveTranscriptRef.current = `${liveTranscriptRef.current} ${finalText}`.trim();
       setTranscript(`${liveTranscriptRef.current} ${interimText}`.trim());
     };
-    recognition.onerror = () => undefined;
-    recognition.start();
+    recognition.onerror = () => {
+      browserTranscriptActiveRef.current = false;
+      serverLiveTranscriptRef.current = true;
+    };
+    try {
+      recognition.start();
+    } catch {
+      return false;
+    }
     speechRef.current = recognition;
+    return true;
   }
 
   function pickMime() {
-    const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"];
-    for (const c of candidates) if ((window as any).MediaRecorder?.isTypeSupported?.(c)) return c;
+    const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg"];
+    for (const c of candidates) if (window.MediaRecorder?.isTypeSupported?.(c)) return c;
     return "";
   }
 
+  function enqueueLiveChunk(chunk: Blob) {
+    liveChunkQueueRef.current.push(chunk);
+    void flushLiveChunks();
+  }
+
+  async function flushLiveChunks() {
+    if (liveTranscribingRef.current || !serverLiveTranscriptRef.current) return;
+    const chunks = liveChunkQueueRef.current.splice(0);
+    if (!chunks.length) return;
+    liveTranscribingRef.current = true;
+    try {
+      const blob = new Blob(chunks, { type: mediaRef.current?.mimeType || chunks[0]?.type || "audio/webm" });
+      const text = await transcribeBlob(blob);
+      appendTranscript(text);
+    } catch (e) {
+      console.error("live transcription failed", e);
+    } finally {
+      liveTranscribingRef.current = false;
+      if (liveChunkQueueRef.current.length) void flushLiveChunks();
+    }
+  }
+
+  async function transcribeBlob(blob: Blob) {
+    const fd = new FormData();
+    fd.append("audio", blob, `story.${extensionForType(blob.type)}`);
+    const { data, error } = await supabase.functions.invoke("transcribe", { body: fd });
+    if (error) throw error;
+    return String(data?.text ?? "").trim();
+  }
+
+  function extensionForType(type: string) {
+    if (type.includes("mp4") || type.includes("aac")) return "m4a";
+    if (type.includes("ogg")) return "ogg";
+    if (type.includes("wav")) return "wav";
+    return "webm";
+  }
+
   async function processAudio(blob: Blob) {
+    await flushLiveChunks();
     setBusy(true); setStage(1);
     try {
       const browserText = liveTranscriptRef.current.trim();
-      if (browserText.length > 8) {
+      if (browserText.length > 8 && !serverLiveTranscriptRef.current) {
         setTranscript(browserText);
         await analyze(browserText);
         return;
       }
-      const fd = new FormData();
-      fd.append("audio", blob, "story.webm");
-      const { data, error } = await supabase.functions.invoke("transcribe", { body: fd });
-      if (error) throw error;
-      const text: string = data?.text ?? "";
+      const text = await transcribeBlob(blob).catch(() => browserText);
       if (!text.trim()) throw new Error("Couldn't hear any speech — try again.");
       setTranscript(text);
       await analyze(text);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      toast({ title: "Transcription failed", description: e?.message ?? "Try again or type instead.", variant: "destructive" });
+      toast({ title: "Transcription failed", description: getErrorMessage(e, "Try again or type instead."), variant: "destructive" });
       setBusy(false); setStage(0);
     }
   }
@@ -135,7 +250,7 @@ const Scan = () => {
         body: { transcript: storyText + (journal ? `\n\nAdditional notes from user: ${journal}` : ""), modalities },
       });
       if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
+      if (data && typeof data === "object" && "error" in data && typeof data.error === "string") throw new Error(data.error);
       setStage(3);
       const ai = data as AIWellnessReport;
       const previous = loadSessions()[0];
@@ -144,9 +259,9 @@ const Scan = () => {
       saveSession(session);
       toast({ title: "Analysis complete", description: ai.summary });
       setTimeout(() => navigate("/dashboard"), 350);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      toast({ title: "Analysis failed", description: e?.message ?? "AI gateway error.", variant: "destructive" });
+      toast({ title: "Analysis failed", description: getErrorMessage(e, "AI gateway error."), variant: "destructive" });
       setBusy(false); setStage(0);
     }
   }
@@ -188,9 +303,16 @@ const Scan = () => {
             </div>
           )}
 
-          {transcript && !busy && (
+          {transcript && !busy && !recording && (
             <div className="glass rounded-2xl p-5">
               <div className="mb-2 text-xs font-mono uppercase tracking-widest text-primary">Transcript</div>
+              <p className="text-sm text-foreground/90">{transcript}</p>
+            </div>
+          )}
+
+          {recording && transcript && (
+            <div className="glass rounded-2xl p-5">
+              <div className="mb-2 text-xs font-mono uppercase tracking-widest text-primary">Live Transcript</div>
               <p className="text-sm text-foreground/90">{transcript}</p>
             </div>
           )}
