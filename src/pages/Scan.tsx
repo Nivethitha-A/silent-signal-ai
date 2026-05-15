@@ -101,7 +101,15 @@ const Scan = () => {
       mr.start(3000);
       setRecording(true);
       setRecSeconds(0);
-      timerRef.current = window.setInterval(() => setRecSeconds((s) => s + 1), 1000);
+      timerRef.current = window.setInterval(() => {
+        setRecSeconds((s) => {
+          const next = s + 1;
+          if (serverLiveTranscriptRef.current && next % 3 === 0 && mediaRef.current?.state === "recording") {
+            try { mediaRef.current.requestData(); } catch { /* browser may not support manual chunks */ }
+          }
+          return next;
+        });
+      }, 1000);
       if (serverLiveTranscriptRef.current) {
         toast({ title: "Mobile live transcript enabled", description: "Keep speaking — transcript appears every few seconds." });
       }
@@ -274,7 +282,7 @@ const Scan = () => {
             </div>
           )}
 
-          {transcript && !busy && (
+          {transcript && !busy && !recording && (
             <div className="glass rounded-2xl p-5">
               <div className="mb-2 text-xs font-mono uppercase tracking-widest text-primary">Transcript</div>
               <p className="text-sm text-foreground/90">{transcript}</p>
