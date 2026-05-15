@@ -1,12 +1,15 @@
-// Transcribe audio via ElevenLabs Scribe v2
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+// Transcribe audio via Lovable AI Gateway (Gemini multimodal)
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
-    if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not configured");
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
 
     const inForm = await req.formData();
     const file = inForm.get("audio");
@@ -16,28 +19,54 @@ Deno.serve(async (req) => {
       });
     }
 
-    const fd = new FormData();
-    fd.append("file", file, "story.webm");
-    fd.append("model_id", "scribe_v2");
-    fd.append("tag_audio_events", "true");
-    fd.append("diarize", "false");
+    // Convert to base64
+    const buf = new Uint8Array(await (file as Blob).arrayBuffer());
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let i = 0; i < buf.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(null, Array.from(buf.subarray(i, i + chunkSize)));
+    }
+    const base64 = btoa(binary);
 
-    const r = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+    // Detect mime
+    const type = (file as Blob).type || "audio/webm";
+    let format = "webm";
+    if (type.includes("mp4") || type.includes("m4a")) format = "mp4";
+    else if (type.includes("mpeg") || type.includes("mp3")) format = "mp3";
+    else if (type.includes("wav")) format = "wav";
+    else if (type.includes("ogg")) format = "ogg";
+
+    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: { "xi-api-key": apiKey },
-      body: fd,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Transcribe this audio verbatim. Return only the transcript text, no commentary." },
+              { type: "input_audio", input_audio: { data: base64, format } },
+            ],
+          },
+        ],
+      }),
     });
 
     if (!r.ok) {
       const errText = await r.text();
-      console.error("ElevenLabs STT failed:", r.status, errText);
+      console.error("AI gateway STT failed:", r.status, errText);
       return new Response(JSON.stringify({ error: "Transcription failed", detail: errText }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const data = await r.json();
-    return new Response(JSON.stringify({ text: data.text ?? "", words: data.words ?? [] }), {
+    const text = data?.choices?.[0]?.message?.content ?? "";
+    return new Response(JSON.stringify({ text: typeof text === "string" ? text : "" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
