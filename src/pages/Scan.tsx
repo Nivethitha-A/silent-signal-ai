@@ -193,6 +193,7 @@ const Scan = () => {
   }
 
   async function processAudio(blob: Blob) {
+    await flushLiveChunks();
     setBusy(true); setStage(1);
     try {
       const browserText = liveTranscriptRef.current.trim();
@@ -201,11 +202,7 @@ const Scan = () => {
         await analyze(browserText);
         return;
       }
-      const fd = new FormData();
-      fd.append("audio", blob, "story.webm");
-      const { data, error } = await supabase.functions.invoke("transcribe", { body: fd });
-      if (error) throw error;
-      const text: string = data?.text ?? "";
+      const text = await transcribeBlob(blob);
       if (!text.trim()) throw new Error("Couldn't hear any speech — try again.");
       setTranscript(text);
       await analyze(text);
@@ -280,6 +277,13 @@ const Scan = () => {
           {transcript && !busy && (
             <div className="glass rounded-2xl p-5">
               <div className="mb-2 text-xs font-mono uppercase tracking-widest text-primary">Transcript</div>
+              <p className="text-sm text-foreground/90">{transcript}</p>
+            </div>
+          )}
+
+          {recording && transcript && (
+            <div className="glass rounded-2xl p-5">
+              <div className="mb-2 text-xs font-mono uppercase tracking-widest text-primary">Live Transcript</div>
               <p className="text-sm text-foreground/90">{transcript}</p>
             </div>
           )}
