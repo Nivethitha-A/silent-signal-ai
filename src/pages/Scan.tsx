@@ -17,6 +17,26 @@ const STAGES = [
   "Generating recovery protocol…",
 ];
 
+type SpeechResult = { isFinal: boolean; 0?: { transcript?: string } };
+type SpeechResultList = { length: number; [index: number]: SpeechResult };
+type SpeechRecognitionEventLike = { resultIndex: number; results: SpeechResultList };
+type BrowserSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+type SpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
+type SpeechRecognitionWindow = Window & typeof globalThis & {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => error instanceof Error ? error.message : fallback;
+
 const Scan = () => {
   const navigate = useNavigate();
   const [journal, setJournal] = useState("");
@@ -33,7 +53,7 @@ const Scan = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<number | null>(null);
   const recordingRef = useRef(false);
-  const speechRef = useRef<any>(null);
+  const speechRef = useRef<BrowserSpeechRecognition | null>(null);
   const liveTranscriptRef = useRef("");
   const browserTranscriptActiveRef = useRef(false);
   const serverLiveTranscriptRef = useRef(false);
