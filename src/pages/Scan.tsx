@@ -235,9 +235,9 @@ const Scan = () => {
       if (!text.trim()) throw new Error("Couldn't hear any speech — try again.");
       setTranscript(text);
       await analyze(text);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      toast({ title: "Transcription failed", description: e?.message ?? "Try again or type instead.", variant: "destructive" });
+      toast({ title: "Transcription failed", description: getErrorMessage(e, "Try again or type instead."), variant: "destructive" });
       setBusy(false); setStage(0);
     }
   }
@@ -250,7 +250,7 @@ const Scan = () => {
         body: { transcript: storyText + (journal ? `\n\nAdditional notes from user: ${journal}` : ""), modalities },
       });
       if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
+      if (data && typeof data === "object" && "error" in data && typeof data.error === "string") throw new Error(data.error);
       setStage(3);
       const ai = data as AIWellnessReport;
       const previous = loadSessions()[0];
@@ -259,9 +259,9 @@ const Scan = () => {
       saveSession(session);
       toast({ title: "Analysis complete", description: ai.summary });
       setTimeout(() => navigate("/dashboard"), 350);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      toast({ title: "Analysis failed", description: e?.message ?? "AI gateway error.", variant: "destructive" });
+      toast({ title: "Analysis failed", description: getErrorMessage(e, "AI gateway error."), variant: "destructive" });
       setBusy(false); setStage(0);
     }
   }
