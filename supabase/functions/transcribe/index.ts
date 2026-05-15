@@ -48,11 +48,12 @@ Deno.serve(async (req) => {
           {
             role: "user",
             content: [
-              { type: "text", text: "Transcribe this audio verbatim. Return only the transcript text, no commentary." },
+              { type: "text", text: "Transcribe clear human speech in this audio verbatim. If there is no clear speech, return an empty string. Return only the transcript text, no commentary." },
               { type: "input_audio", input_audio: { data: base64, format } },
             ],
           },
         ],
+        temperature: 0,
       }),
     });
 
