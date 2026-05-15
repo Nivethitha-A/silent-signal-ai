@@ -68,23 +68,40 @@ const Scan = () => {
 
   async function startRecording() {
     try {
+      if (!navigator.mediaDevices?.getUserMedia || !(window as any).MediaRecorder) {
+        toast({ title: "Recording unavailable", description: "This browser cannot record audio. Type your story instead.", variant: "destructive" });
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       liveTranscriptRef.current = "";
-      startBrowserTranscription();
-      const mr = new MediaRecorder(stream, { mimeType: pickMime() });
+      setTranscript("");
+      browserTranscriptActiveRef.current = startBrowserTranscription();
+      serverLiveTranscriptRef.current = !browserTranscriptActiveRef.current;
+      liveTranscribingRef.current = false;
+      liveChunkQueueRef.current = [];
+      const mimeType = pickMime();
+      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       chunksRef.current = [];
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.ondataavailable = (e) => {
+        if (e.data.size <= 0) return;
+        chunksRef.current.push(e.data);
+        if (serverLiveTranscriptRef.current && recording) enqueueLiveChunk(e.data);
+      };
       mr.onstop = async () => {
+        speechRef.current?.stop?.();
         const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
         stopStream();
         await processAudio(blob);
       };
       mediaRef.current = mr;
-      mr.start();
+      mr.start(3000);
       setRecording(true);
       setRecSeconds(0);
       timerRef.current = window.setInterval(() => setRecSeconds((s) => s + 1), 1000);
+      if (serverLiveTranscriptRef.current) {
+        toast({ title: "Mobile live transcript enabled", description: "Keep speaking — transcript appears every few seconds." });
+      }
     } catch (e) {
       console.error(e);
       toast({ title: "Microphone blocked", description: "Allow mic access, or type your story instead.", variant: "destructive" });
@@ -94,12 +111,12 @@ const Scan = () => {
   function stopRecording() {
     setRecording(false);
     speechRef.current?.stop?.();
-    mediaRef.current?.stop();
+    if (mediaRef.current?.state !== "inactive") mediaRef.current?.stop();
   }
 
   function startBrowserTranscription() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) return false;
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
@@ -115,15 +132,60 @@ const Scan = () => {
       if (finalText) liveTranscriptRef.current = `${liveTranscriptRef.current} ${finalText}`.trim();
       setTranscript(`${liveTranscriptRef.current} ${interimText}`.trim());
     };
-    recognition.onerror = () => undefined;
-    recognition.start();
+    recognition.onerror = () => {
+      browserTranscriptActiveRef.current = false;
+      serverLiveTranscriptRef.current = true;
+    };
+    try {
+      recognition.start();
+    } catch {
+      return false;
+    }
     speechRef.current = recognition;
+    return true;
   }
 
   function pickMime() {
-    const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"];
+    const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg"];
     for (const c of candidates) if ((window as any).MediaRecorder?.isTypeSupported?.(c)) return c;
     return "";
+  }
+
+  function enqueueLiveChunk(chunk: Blob) {
+    liveChunkQueueRef.current.push(chunk);
+    void flushLiveChunks();
+  }
+
+  async function flushLiveChunks() {
+    if (liveTranscribingRef.current || !serverLiveTranscriptRef.current) return;
+    const chunks = liveChunkQueueRef.current.splice(0);
+    if (!chunks.length) return;
+    liveTranscribingRef.current = true;
+    try {
+      const blob = new Blob(chunks, { type: mediaRef.current?.mimeType || chunks[0]?.type || "audio/webm" });
+      const text = await transcribeBlob(blob);
+      appendTranscript(text);
+    } catch (e) {
+      console.error("live transcription failed", e);
+    } finally {
+      liveTranscribingRef.current = false;
+      if (liveChunkQueueRef.current.length) void flushLiveChunks();
+    }
+  }
+
+  async function transcribeBlob(blob: Blob) {
+    const fd = new FormData();
+    fd.append("audio", blob, `story.${extensionForType(blob.type)}`);
+    const { data, error } = await supabase.functions.invoke("transcribe", { body: fd });
+    if (error) throw error;
+    return String(data?.text ?? "").trim();
+  }
+
+  function extensionForType(type: string) {
+    if (type.includes("mp4") || type.includes("aac")) return "m4a";
+    if (type.includes("ogg")) return "ogg";
+    if (type.includes("wav")) return "wav";
+    return "webm";
   }
 
   async function processAudio(blob: Blob) {
