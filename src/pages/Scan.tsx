@@ -34,13 +34,36 @@ const Scan = () => {
   const timerRef = useRef<number | null>(null);
   const speechRef = useRef<any>(null);
   const liveTranscriptRef = useRef("");
+  const browserTranscriptActiveRef = useRef(false);
+  const serverLiveTranscriptRef = useRef(false);
+  const liveTranscribingRef = useRef(false);
+  const liveChunkQueueRef = useRef<Blob[]>([]);
 
   useEffect(() => () => stopStream(), []);
 
   function stopStream() {
+    speechRef.current?.stop?.();
+    speechRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  }
+
+  function appendTranscript(nextText: string) {
+    const clean = nextText.replace(/\s+/g, " ").trim();
+    if (!clean) return;
+    const current = liveTranscriptRef.current.trim();
+    const lowerCurrent = current.toLowerCase();
+    const lowerClean = clean.toLowerCase();
+    const combined = !current
+      ? clean
+      : lowerCurrent.endsWith(lowerClean)
+        ? current
+        : lowerClean.startsWith(lowerCurrent)
+          ? clean
+          : `${current} ${clean}`;
+    liveTranscriptRef.current = combined.trim();
+    setTranscript(liveTranscriptRef.current);
   }
 
   async function startRecording() {
