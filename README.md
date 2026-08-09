@@ -2,9 +2,7 @@
 ### *“AI That Understands More Than Words.”*
 Deployed website link: https://silent-signal-ai.lovable.app
 
-Demo video: https://drive.google.com/file/d/1ev9GZqH1q4gfUYLdlcAdUXM8layQ8XmX/view?usp=drivesdk
-
-PPT: https://docs.google.com/presentation/d/15Dv1IyY5A3C58a-fiDQlO-Bm9a1unud2/edit?usp=drivesdk&ouid=106004990435705796173&rtpof=true&sd=true
+Demo video: https://drive.google.com/file/d/1AmOifBxhLubQCZCofExFTmS8eEEjsjkZ/view?usp=sharing
 
 SilentSignal AI is a futuristic AI-powered preventive healthcare and wellness platform that analyzes emotions, voice stress, facial expressions, posture, eye fatigue, and behavioral patterns to detect hidden signs of stress, burnout, and wellness decline before they become serious.
 
