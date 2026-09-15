@@ -1,13 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Camera, Mic, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { clearSessions } from "@/lib/silentSignal";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
-  const [name, setName] = useState("Subject 0001");
+  const { user, profile } = useAuth();
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setName(profile?.display_name ?? "");
+  }, [profile]);
+
+  const saveName = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: name })
+      .eq("id", user.id);
+    setSaving(false);
+    toast({
+      title: error ? error.message : "Profile updated",
+      variant: error ? "destructive" : undefined,
+    });
+  };
+
   const [voice, setVoice] = useState(true);
   const [face, setFace] = useState(true);
   const [alerts, setAlerts] = useState(true);
