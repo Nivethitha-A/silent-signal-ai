@@ -1,9 +1,10 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   Activity,
   BookOpen,
   Heart,
   LayoutDashboard,
+  LogOut,
   Radar,
   Settings,
   ShieldAlert,
@@ -11,6 +12,8 @@ import {
   Waves,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const NAV = [
   { to: "/", label: "Home", icon: Sparkles, end: true },
@@ -24,6 +27,14 @@ const NAV = [
 ];
 
 export function AppShell() {
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
+
   return (
     <div className="min-h-screen w-full">
       <div className="fixed inset-x-0 top-0 z-40 border-b border-border/40 backdrop-blur-xl bg-background/70">
@@ -60,9 +71,26 @@ export function AppShell() {
               </NavLink>
             ))}
           </nav>
-          <div className="hidden md:flex items-center gap-2 text-xs font-mono text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-            AI ONLINE
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2 text-xs font-mono text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+              AI ONLINE
+            </div>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:block max-w-[120px] truncate text-xs text-muted-foreground">
+                  {profile?.display_name ?? user.email}
+                </span>
+                <Button size="sm" variant="outline" className="border-border/60" onClick={handleSignOut}>
+                  <LogOut className="h-3.5 w-3.5 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Sign out</span>
+                </Button>
+              </div>
+            ) : (
+              <Button asChild size="sm" className="bg-aurora text-primary-foreground glow-primary">
+                <NavLink to="/auth">Sign in</NavLink>
+              </Button>
+            )}
           </div>
         </div>
       </div>

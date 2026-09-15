@@ -1,13 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Camera, Mic, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { clearSessions } from "@/lib/silentSignal";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
-  const [name, setName] = useState("Subject 0001");
+  const { user, profile } = useAuth();
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setName(profile?.display_name ?? "");
+  }, [profile]);
+
+  const saveName = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: name })
+      .eq("id", user.id);
+    setSaving(false);
+    toast({
+      title: error ? error.message : "Profile updated",
+      variant: error ? "destructive" : undefined,
+    });
+  };
+
   const [voice, setVoice] = useState(true);
   const [face, setFace] = useState(true);
   const [alerts, setAlerts] = useState(true);
@@ -22,7 +45,18 @@ const Settings = () => {
       <div className="space-y-4">
         <div className="glass rounded-2xl p-5">
           <div className="mb-3 flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-muted-foreground"><User className="h-4 w-4" /> Identity</div>
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-background/40" />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Display name"
+              className="bg-background/40"
+            />
+            <Button onClick={saveName} disabled={saving} className="bg-primary/20 text-primary hover:bg-primary/30">
+              Save
+            </Button>
+          </div>
+          <div className="mt-2 text-xs text-muted-foreground">{user?.email}</div>
         </div>
 
         <div className="glass rounded-2xl p-5 space-y-4">
