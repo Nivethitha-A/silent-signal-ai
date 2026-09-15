@@ -1,9 +1,10 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   Activity,
   BookOpen,
   Heart,
   LayoutDashboard,
+  LogOut,
   Radar,
   Settings,
   ShieldAlert,
@@ -11,6 +12,8 @@ import {
   Waves,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const NAV = [
   { to: "/", label: "Home", icon: Sparkles, end: true },
