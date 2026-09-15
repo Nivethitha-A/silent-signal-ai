@@ -27,6 +27,14 @@ const NAV = [
 ];
 
 export function AppShell() {
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
+
   return (
     <div className="min-h-screen w-full">
       <div className="fixed inset-x-0 top-0 z-40 border-b border-border/40 backdrop-blur-xl bg-background/70">
