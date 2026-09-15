@@ -45,7 +45,18 @@ const Settings = () => {
       <div className="space-y-4">
         <div className="glass rounded-2xl p-5">
           <div className="mb-3 flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-muted-foreground"><User className="h-4 w-4" /> Identity</div>
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-background/40" />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Display name"
+              className="bg-background/40"
+            />
+            <Button onClick={saveName} disabled={saving} className="bg-primary/20 text-primary hover:bg-primary/30">
+              Save
+            </Button>
+          </div>
+          <div className="mt-2 text-xs text-muted-foreground">{user?.email}</div>
         </div>
 
         <div className="glass rounded-2xl p-5 space-y-4">
