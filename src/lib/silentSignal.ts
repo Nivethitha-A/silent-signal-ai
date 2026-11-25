@@ -69,6 +69,64 @@ export function clearSessions() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+export interface HealthMemoryDay {
+  dayStart: number;
+  sessionCount: number;
+  metrics: Partial<Record<SignalKey, number>>;
+}
+
+export function aggregateHealthMemory(sessions: ScanSession[], now = Date.now()): HealthMemoryDay[] {
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const firstDay = new Date(today);
+  firstDay.setDate(firstDay.getDate() - 6);
+
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const dayStart = new Date(firstDay);
+    dayStart.setDate(firstDay.getDate() + index);
+    return {
+      dayStart: dayStart.getTime(),
+      sessionCount: 0,
+      totals: {} as Partial<Record<SignalKey, { sum: number; count: number }>>,
+    };
+  });
+  const byDay = new Map(days.map((day) => [day.dayStart, day]));
+
+  sessions.forEach((session) => {
+    if (session.createdAt < firstDay.getTime() || session.createdAt > now) return;
+    const sessionDay = new Date(session.createdAt);
+    sessionDay.setHours(0, 0, 0, 0);
+    const bucket = byDay.get(sessionDay.getTime());
+    if (!bucket) return;
+
+    bucket.sessionCount += 1;
+    session.metrics.forEach(({ key, value }) => {
+      if (!Number.isFinite(value)) return;
+      const total = bucket.totals[key] ?? { sum: 0, count: 0 };
+      bucket.totals[key] = { sum: total.sum + value, count: total.count + 1 };
+    });
+  });
+
+  return days.map(({ dayStart, sessionCount, totals }) => ({
+    dayStart,
+    sessionCount,
+    metrics: Object.fromEntries(
+      Object.entries(totals).map(([key, total]) => [key, Number((total.sum / total.count).toFixed(1))]),
+    ) as Partial<Record<SignalKey, number>>,
+  }));
+}
+
+export interface GuardianSignalLevels {
+  stress: number;
+  burnout: number;
+  fatigue: number;
+  energy: number;
+}
+
+export function shouldTriggerGuardian({ stress, burnout, fatigue, energy }: GuardianSignalLevels): boolean {
+  return stress > 88 || burnout > 85 || (fatigue > 80 && energy < 25);
+}
+
 // ---------- Heuristics ----------
 const STRESS_WORDS = ["tired", "exhausted", "anxious", "stress", "overwhelm", "panic", "burn", "drained", "headache", "sad", "lonely", "angry", "fear", "worry"];
 const POSITIVE_WORDS = ["calm", "great", "happy", "energetic", "focused", "rested", "grateful", "peaceful"];
@@ -190,7 +248,7 @@ export function runAnalysis(opts: {
   if (recovery.length === 0) recovery.push({ id: "calm", title: "Calm Mode Maintenance", duration: "2 min", category: "calm", rationale: "Reinforce regulated baseline with a short coherence breath." });
 
   // Guardian Mode
-  const guardianTrigger = stress > 88 || burnout > 85 || (fatigue > 80 && energy < 25);
+  const guardianTrigger = shouldTriggerGuardian({ stress, burnout, fatigue, energy });
   return {
     id: crypto.randomUUID(),
     createdAt: Date.now(),
