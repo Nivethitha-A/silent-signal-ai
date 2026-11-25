@@ -1,161 +1,110 @@
-# 🧠 SilentSignal AI  
-### *“AI That Understands More Than Words.”*
-Deployed website link: https://silent-signal-ai.lovable.app
+# SilentSignal AI — Bridging the 168-Hour Clinical Care Gap in Mental Health
 
-Demo video: https://drive.google.com/file/d/1AmOifBxhLubQCZCofExFTmS8eEEjsjkZ/view?usp=sharing
+> **“AI That Understands More Than Words.”**  
+> *Continuous multimodal behavioral telemetry connecting patients, trusted guardians, and psychologists between weekly therapy sessions.*
 
-SilentSignal AI is a futuristic AI-powered preventive healthcare and wellness platform that analyzes emotions, voice stress, facial expressions, posture, eye fatigue, and behavioral patterns to detect hidden signs of stress, burnout, and wellness decline before they become serious.
-
-Unlike traditional mood journal apps that only analyze text, SilentSignal AI understands:
-- what users say
-- how they say it
-- and how they physically appear while expressing emotions
-
-By combining Computer Vision, Speech Analysis, and Emotional AI, the system generates intelligent wellness insights, recovery protocols, and personalized mental-health support in real time.
+🔗 **Live Application:** [https://silent-signal-ai.lovable.app](https://silent-signal-ai.lovable.app)  
+🎥 **Video Demonstration:** [Watch Demo](https://drive.google.com/file/d/1AmOifBxhLubQCZCofExFTmS8eEEjsjkZ/view?usp=sharing)  
 
 ---
 
-# 🚀 Problem Statement
+## 1. Problem Statement: The 168-Hour Clinical Blind Spot
 
-Most wellness and mental health applications rely only on manual mood tracking or text-based journaling. They fail to recognize silent physical and behavioral health signals such as:
-- stressed voice tone
-- tired eyes
-- poor posture
-- facial fatigue
-- emotional exhaustion
+In outpatient mental healthcare, a patient typically spends **1 hour per week** with a psychologist and **167 hours alone** navigating daily stressors. This creates a dangerous clinical and behavioral gap between sessions:
 
-As a result, stress, burnout, and mental fatigue often go unnoticed until they become severe.
+1. **Recall Bias During Therapy:** When patients attend their weekly session, they summarize 7 days of complex emotional fluctuations based on how they feel in that single moment, unintentionally omitting critical mid-week triggers or acute dips.
+2. **The "Masked Distress" Phenomenon:** Patients experiencing burnout, anxiety, or depressive fatigue often minimize their struggles in text diaries ("I'm fine today"), while subconscious non-verbal cues—vocal tension, facial fatigue, eye strain, and slumped posture—reveal silent deterioration.
+3. **Delayed Crisis Escalation:** Trusted family members, caregivers, or clinicians have no objective, privacy-respecting early-warning signal when a patient's baseline wellness trends downward over consecutive days, resulting in reactive crisis intervention rather than timely support.
 
----
-
-# 💡 Solution
-
-SilentSignal AI solves this problem using a multimodal AI system that combines:
-- NLP (Natural Language Processing)
-- Speech Emotion Recognition
-- Computer Vision
-- Behavioral AI
-
-The system analyzes:
-✅ Journal text  
-✅ Voice tone  
-✅ Facial expressions  
-✅ Eye fatigue  
-✅ Posture  
-✅ Breathing patterns  
-
-to detect hidden emotional and physical health deterioration.
+**Core Problem Objective:**  
+Design an accessible, non-intrusive AI wellness companion that continuously captures objective multimodal behavioral signals between weekly psychologist visits, empowers patients with immediate self-regulation protocols, and alerts designated guardians when sustained high-risk trends emerge.
 
 ---
 
-# ✨ Core Features
+## 2. Solution Alignment: How SilentSignal AI Solves the Gap
 
-## 📝 AI Journal System
-Users can:
-- type daily journal entries
-- speak naturally using microphone input
+SilentSignal AI transforms passive daily check-ins into an **inter-session clinical intelligence bridge**, uniting **Regular Mode** for daily patient self-care and **Guardian Mode** for proactive safety oversight.
 
-The AI analyzes emotional sentiment and behavioral patterns from the journal.
-
----
-
-## 🎤 Voice Stress Analysis
-AI detects:
-- stress in voice
-- speech energy
-- emotional tension
-- speaking speed
+| Clinical Gap / User Need | SilentSignal AI Feature | Direct Impact on Patient & Care Outcome |
+| :--- | :--- | :--- |
+| **Overcoming text-only recall bias** | **Multimodal Check-In (Text + Voice + Vision)** | Captures *what* the patient writes, *how* their voice sounds, and *how* they physically appear in under 60 seconds. |
+| **Objective inter-session tracking** | **6-Axis Wellness Telemetry & AI Health Memory** | Logs longitudinal scores (**Stress, Mental Fatigue, Focus, Emotional Wellness, Eye Strain, Posture Risk**) across the entire 7-day cycle so psychologists see true behavioral trajectories. |
+| **Immediate support between visits** | **Regular Mode & Personalized Recovery Protocols** | Delivers targeted micro-interventions (guided breathing, 20-20-20 eye relaxation, posture reset, hydration, stress cooldown) immediately when strain is detected. |
+| **Silent deterioration & safety net** | **Guardian Mode (Escalation & Care Alerts)** | Monitors consecutive negative wellness trends and notifies a consented guardian or support contact when sustained distress thresholds are crossed—without exposing private journal transcripts. |
 
 ---
 
-## 📷 Webcam-Based Health Scan
-Using webcam input, AI analyzes:
-- facial emotions
-- eye strain
-- blink rate
-- posture
-- facial symmetry
-- fatigue indicators
+## 3. Dual-Mode Architecture & System Workflow
 
----
+### Dual Operational Modes
+- **Regular Mode (Patient Companion):** Daily multimodal journaling, live wellness scoring, AI Health Memory trend charts for weekly therapist review, and interactive Recovery Protocols.
+- **Guardian Mode (Caregiver & Safety Layer):** Consented threshold monitoring that tracks cumulative burnout/stress trajectories across the week and triggers proactive check-in alerts if high-risk patterns persist.
 
-## 📊 Wellness Dashboard
-The system generates:
-- Stress Score
-- Burnout Risk
-- Fatigue Level
-- Focus Level
-- Emotional Wellness Score
-- Posture Risk
-- Eye Strain Analysis
-
-with beautiful real-time visualizations.
-
----
-
-## 🧘 Recovery Protocol Engine
-AI generates personalized wellness actions such as:
-- breathing exercises
-- posture correction
-- hydration reminders
-- eye relaxation
-- stress cooldown sessions
-- sleep recovery suggestions
-
----
-
-## 📈 Burnout Prediction Engine
-Tracks user behavior over time and predicts:
-- rising stress patterns
-- emotional decline
-- worsening fatigue
-- burnout risk trends
-
----
-
-## 🚨 Guardian Mode
-If severe distress or abnormal behavior is detected, the system triggers:
-- wellness alerts
-- emergency warnings
-- caregiver notification simulation
-
----
-
-# 🧬 Technologies Used
-
-## Frontend
-- React.js
-- Tailwind CSS
-- Framer Motion
-
-## Backend
-- FastAPI (Python)
-
-## AI / ML
-- MediaPipe
-- OpenCV
-- TensorFlow
-- Whisper API
-- Sentiment Analysis Models
-
-## Data Visualization
-- Recharts
-
----
-
-# 🏗️ System Architecture
+### Multimodal Intelligence Pipeline
 
 ```text
-User Journal + Voice + Webcam
-              ↓
-     Multimodal AI Engine
-   (NLP + CV + Speech AI)
-              ↓
-   Behavioral Health Analysis
-              ↓
- Wellness Prediction Engine
-              ↓
- AI Wellness Dashboard
-              ↓
- Personalized Recovery Protocol
+┌──────────────────────────────────────────────────────────────────────┐
+│                   DAILY PATIENT CHECK-IN (REGULAR MODE)              │
+│     [Journal Text]      +      [Voice Audio]      +    [Webcam]      │
+└───────────┬──────────────────────────┬─────────────────────┬─────────┘
+            ▼                          ▼                     ▼
+  ┌───────────────────┐    ┌─────────────────────┐   ┌───────────────┐
+  │  NLP & Sentiment  │    │  Speech Prosody &   │   │ Computer      │
+  │  Analysis         │    │  Whisper Acoustics  │   │ Vision (Face, │
+  │                   │    │                     │   │ Eyes, Posture)│
+  └─────────┬─────────┘    └──────────┬──────────┘   └───────┬───────┘
+            └─────────────────────────┼──────────────────────┘
+                                      ▼
+                        ┌───────────────────────────┐
+                        │  MULTIMODAL FUSION ENGINE │
+                        └─────────────┬─────────────┘
+                                      ▼
+        ┌───────────────────────────────────────────────────────────┐
+        │             6-AXIS WELLNESS TELEMETRY & MEMORY            │
+        │  Stress • Fatigue • Focus • Mood • Eye Strain • Posture   │
+        └──────────────┬──────────────────────────────┬─────────────┘
+                       ▼                              ▼
+    ┌─────────────────────────────────┐  ┌─────────────────────────────┐
+    │      PATIENT SELF-CARE          │  │        GUARDIAN MODE        │
+    │ • Personalized Recovery Protocol│  │ • Consecutive Trend Monitor │
+    │ • 7-Day Psychologist Summary    │  │ • Consented Risk Alerts     │
+    └─────────────────────────────────┘  └─────────────────────────────┘
 ```
+### Technology Stack
+- **Frontend & Visualization:** React.js, TypeScript, Tailwind CSS, Recharts (7-day inter-session telemetry charts)
+- **AI & Multimodal Processing:** Python, FastAPI, TensorFlow, OpenCV, MediaPipe (Facial & Pose Landmarks), Whisper (Speech Analysis), NLP Sentiment Engine
+
+---
+
+## 4. Key Features
+1. **Multimodal Signal Fusion:** Combines natural language sentiment, vocal acoustic stress markers, and computer-vision facial/posture metrics into a unified wellness profile.
+2. **AI Health Memory (7-Day Therapy Bridge):** Stores longitudinal check-in trends so patients and psychologists can review objective daily patterns during weekly consultations.
+3. **Regular Mode Recovery Engine:** Dynamically prescribes actionable cooldowns (breathing exercises, eye relaxation, posture correction, focus resets) matched to the user's highest-strain metric.
+4. **Guardian Mode Safety Net:** Allows users to designate a trusted guardian who receives automated wellness threshold alerts during sustained high-stress streaks while preserving raw journal privacy.
+5. **Privacy-First Edge Processing:** Webcam landmark extraction runs client-side with explicit user opt-in; zero raw video frames are persisted.
+
+---
+
+## 5. Local Setup & Installation
+
+```bash
+# 1. Clone the repository
+git clone [https://github.com/Nivethitha-A/silent-signal-ai.git](https://github.com/Nivethitha-A/silent-signal-ai.git)
+cd silent-signal-ai
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the local development server
+npm run dev
+```
+## 6. Running Automated Tests
+
+```bash
+# Execute unit and component test suite
+npm test
+```
+## 7. Accessibility & Inclusive Design
+- **WCAG 2.1 AA Contrast:** High-contrast UI tokens across dashboards, telemetry cards, and recovery timers.
+- **Full Keyboard & Screen-Reader Support:** Semantic HTML5 landmarks (`<main>`, `<nav>`, `<section>`), explicit `aria-label` attributes on audio/video controls, and keyboard-accessible modal workflows.
+- **Graceful Multimodal Fallback:** Full functionality in text-only or audio-only mode for users without webcams or in low-bandwidth environments.
